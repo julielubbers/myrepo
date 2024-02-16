@@ -1,0 +1,38 @@
+---
+title: "Portfolio"
+author: "JL"
+date: "2024-02-16"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(spotifyr)
+```
+
+
+```{r}
+playlist_attributes <- get_playlist_audio_features("", "5Jc1YneHyEETdSuucyX9kU") %>% 
+    select(track.name, danceability, energy, speechiness:valence) %>%
+  pivot_longer(cols = danceability:valence,
+               names_to = "attribute",
+               values_to = "rating")
+popularity <- get_playlist_audio_features("", "5Jc1YneHyEETdSuucyX9kU") %>%
+  select(track.name, track.popularity,
+         acousticness, danceability, energy, 
+         liveness, speechiness, valence) %>%
+  pivot_longer(cols = acousticness:valence,
+               names_to = "attribute",
+               values_to = "rating")
+
+
+ggplot(playlist_attributes, aes(x = rating, colour = attribute)) +
+  geom_density(show.legend = FALSE) +
+  facet_wrap(~attribute, scales = "free_y", nrow = 2)
+ggplot(popularity, aes(x = rating, y = track.popularity, colour = attribute)) +
+  geom_point(alpha = 0.5, show.legend = FALSE) +
+  geom_smooth(method = lm, formula = y~x, show.legend = FALSE) +
+  facet_wrap(~attribute, scales = "free_x", nrow = 2) +
+  labs(x = "Attribute Value",
+       y = "Track Popularity")
+```
+
