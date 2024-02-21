@@ -5,6 +5,7 @@ date: "2024-02-21"
 output:
   flexdashboard::flex_dashboard:
     storyboard: true
+    orientation: columns
     
 
 ---
@@ -62,7 +63,7 @@ ggplot(popularity, aes(x = rating, y = track.popularity, colour = attribute)) +
        title = "Track Popularity Based on Attributes")
 ```
 
-### TEST
+### Test Chroma features
 
 ```{r, echo=FALSE}
 wood <-
