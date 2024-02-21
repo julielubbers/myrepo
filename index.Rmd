@@ -58,6 +58,7 @@ ggplot(popularity, aes(x = rating, y = track.popularity, colour = attribute)) +
   geom_smooth(method = lm, formula = y~x, show.legend = FALSE) +
   facet_wrap(~attribute, scales = "free_x", nrow = 2) +
   labs(x = "Attribute Value",
-       y = "Track Popularity")
+       y = "Track Popularity", 
+       title = "Track Popularity Based on Attributes")
 ```
 
