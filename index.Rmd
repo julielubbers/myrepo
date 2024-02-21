@@ -2,29 +2,62 @@
 title: "Computational Musicology"
 author: "JL"
 date: "2024-02-21"
-output: html_document
+output:
+  flexdashboard::flex_dashboard:
+    storyboard: true
+    
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+```{r , include=FALSE}
+library(tidyverse)
+```
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r , include=FALSE}
+library(spotifyr)
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```
+
+### Introduction
+
+This is an R Markdown document. 
+
 
 ```{r cars}
 summary(cars)
 ```
 
-## Including Plots
+### Including Plots
 
-You can also embed plots, for example:
+The images are visuals for the top 10 tracks of adele based on plays. I am still deciding what my final corpus will be, but i think these are general visuals to understand your corpus better and identify any big differences/ outliers. The attributes image shows seven track attributes for the playlist, the rating shows the value retrieved by Spotify API. Track_popularity shows the relationship between track attributes and the track popularity: The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are (from developer.spotify.com)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r, echo=FALSE}
+playlist_attributes <- get_playlist_audio_features("", "5Jc1YneHyEETdSuucyX9kU") %>% 
+    select(track.name, danceability, energy, speechiness:valence) %>%
+  pivot_longer(cols = danceability:valence,
+               names_to = "attribute",
+               values_to = "rating")
+popularity <- get_playlist_audio_features("", "5Jc1YneHyEETdSuucyX9kU") %>%
+  select(track.name, track.popularity,
+         acousticness, danceability, energy, 
+         liveness, speechiness, valence) %>%
+  pivot_longer(cols = acousticness:valence,
+               names_to = "attribute",
+               values_to = "rating")
+
+
+ggplot(playlist_attributes, aes(x = rating, colour = attribute)) +
+  geom_density(show.legend = FALSE) +
+  facet_wrap(~attribute, scales = "free_y", nrow = 2)
+ggplot(popularity, aes(x = rating, y = track.popularity, colour = attribute)) +
+  geom_point(alpha = 0.5, show.legend = FALSE) +
+  geom_smooth(method = lm, formula = y~x, show.legend = FALSE) +
+  facet_wrap(~attribute, scales = "free_x", nrow = 2) +
+  labs(x = "Attribute Value",
+       y = "Track Popularity")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
