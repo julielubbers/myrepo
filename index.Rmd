@@ -21,70 +21,77 @@ library(tidyverse)
 ```{r , include=FALSE}
 library(spotifyr)
 library(compmus)
+library(plotly)
+library(ggplot2)
 
 ```
 
 
 ### Introduction 
 
-This is an R Markdown document. 
+ In this project, I'm going to look at how music has changed over the years by comparing the top 100 songs  for the years 2000, 2005, 2010, 2015, and 2020.I am using playlists from Spotify that are based on the Billboard "Year End Hot 100" (Maybe i will delete year 2000 if the corpus ends up too big when analyzing). 
+This will explore how music evolves alongside societal trends and what remains constant across time.
+I'll be using data from Spotify to analyze trends and patterns in these songs across different years.
+
+For now i will focus on: 
+How has the tempo (BPM) of popular songs changed?
+What musical keys are most prevalent, and does this change over time?
+How has the duration of songs evolved?
+What genres have become more or less popular?
+Did the number of explicit songs change over time? 
 
 
-### Introducing Plots 
 
-The images are visuals for the top 10 tracks of adele based on plays. I am still deciding what my final corpus will be, but i think these are general visuals to understand your corpus better and identify any big differences/ outliers. The attributes image shows seven track attributes for the playlist, the rating shows the value retrieved by Spotify API. Track_popularity shows the relationship between track attributes and the track popularity: The popularity is calculated by algorithm and is based, in the most part, on the total number of plays the track has had and how recent those plays are (from developer.spotify.com)
+### Plots
 
-```{r, echo=FALSE}
-playlist_attributes <- get_playlist_audio_features("", "5Jc1YneHyEETdSuucyX9kU") %>% 
-    select(track.name, danceability, energy, speechiness:valence) %>%
-  pivot_longer(cols = danceability:valence,
-               names_to = "attribute",
-               values_to = "rating")
-popularity <- get_playlist_audio_features("", "5Jc1YneHyEETdSuucyX9kU") %>%
-  select(track.name, track.popularity,
-         acousticness, danceability, energy, 
-         liveness, speechiness, valence) %>%
-  pivot_longer(cols = acousticness:valence,
-               names_to = "attribute",
-               values_to = "rating")
-```
+This table shows the average total_Energy,total_Danceability and total_Valence
+for every year. Then i plotted this in a nice visual way (using a bit of help from the internet). I am not done decoding these results but it looks ..interesting..? 
 
 ```{r, echo=FALSE}
 
-ggplot(playlist_attributes, aes(x = rating, colour = attribute)) +
-  geom_density(show.legend = FALSE) +
-  facet_wrap(~attribute, scales = "free_y", nrow = 2)
-ggplot(popularity, aes(x = rating, y = track.popularity, colour = attribute)) +
-  geom_point(alpha = 0.5, show.legend = FALSE) +
-  geom_smooth(method = lm, formula = y~x, show.legend = FALSE) +
-  facet_wrap(~attribute, scales = "free_x", nrow = 2) +
-  labs(x = "Attribute Value",
-       y = "Track Popularity", 
-       title = "Track Popularity Based on Attributes")
+
+# Function to calculate average energy, danceability, and valence
+calculate_average <- function(df) {
+  avg_energy <- mean(df$energy)
+  avg_danceability <- mean(df$danceability)
+  avg_valence <- mean(df$valence)
+  return(c(avg_energy, avg_danceability, avg_valence))
+}
+
+# Data retrieval for each playlist
+playlist_attributes_2000 <- get_playlist_audio_features("", "4sgfHKNUvjabf82DgycNld")
+playlist_attributes_2005 <- get_playlist_audio_features("", "4olzlochc7bKxI9meYVBQ5")
+playlist_attributes_2010 <- get_playlist_audio_features("", "0BopsKdMocIBPOUYNrYod0")
+playlist_attributes_2015 <- get_playlist_audio_features("", "7fW8dnRbe3Gn7zCa4Tpe1D")
+playlist_attributes_2020 <- get_playlist_audio_features("", "2jDNKyd7Fs8Zf3pLVkCasY")
+
+# Calculate average energy, danceability, and valence per year
+average_2000 <- calculate_average(playlist_attributes_2000)
+average_2005 <- calculate_average(playlist_attributes_2005)
+average_2010 <- calculate_average(playlist_attributes_2010)
+average_2015 <- calculate_average(playlist_attributes_2015)
+average_2020 <- calculate_average(playlist_attributes_2020)
+
+# Create a data frame for comparison
+comparison_df <- data.frame(
+  Year = c("2000", "2005", "2010", "2015", "2020"),
+  Average_Energy = c(average_2000[1], average_2005[1], average_2010[1], average_2015[1], average_2020[1]),
+  Average_Danceability = c(average_2000[2], average_2005[2], average_2010[2], average_2015[2], average_2020[2]),
+  Average_Valence = c(average_2000[3], average_2005[3], average_2010[3], average_2015[3], average_2020[3])
+)
+
+# Print comparison 
+print(comparison_df)
+
+# Plotting the comparison using Plotly
+plot_ly(data = comparison_df, x = ~Year, y = ~Average_Energy, type = 'bar', name = 'Average Energy', marker = list(color = 'rgba(255, 153, 51, 0.7)')) %>%
+  add_trace(y = ~Average_Danceability, name = 'Average Danceability', marker = list(color = 'rgba(51, 153, 255, 0.7)')) %>%
+  add_trace(y = ~Average_Valence, name = 'Average Valence', marker = list(color = 'rgba(102, 204, 0, 0.7)')) %>%
+  layout(title = 'Comparison of Average Music Attributes Over Years',
+         xaxis = list(title = 'Year'),
+         yaxis = list(title = 'Average Value'),
+         barmode = 'group',
+         width = 800, # Adjust the width
+         height = 300) # Adjust the height
 ```
 
-### Test Chroma features
-
-```{r, echo=FALSE}
-wood <-
-  get_tidy_audio_analysis("6IQILcYkN2S2eSu5IHoPEH") |>
-  select(segments) |>
-  unnest(segments) |>
-  select(start, duration, pitches)
-
-wood |>
-  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
-  compmus_gather_chroma() |> 
-  ggplot(
-    aes(
-      x = start + duration / 2,
-      width = duration,
-      y = pitch_class,
-      fill = value
-    )
-  ) +
-  geom_tile() +
-  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
-  theme_minimal() +
-  scale_fill_viridis_c()
-```
