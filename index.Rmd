@@ -80,7 +80,7 @@ comparison_df <- data.frame(
   Average_Valence = c(average_2000[3], average_2005[3], average_2010[3], average_2015[3], average_2020[3])
 )
 
-# Print comparison 
+# Print comparison yes
 print(comparison_df)
 
 # Plotting the comparison using Plotly
