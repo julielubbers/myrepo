@@ -1,13 +1,14 @@
 ---
 title: "Computational Musicology"
-author: "JL"
-date: "2024-02-21"
+author: "Julie Lubbers"
+date: ""
 output:
   flexdashboard::flex_dashboard:
     storyboard: true
     orientation: columns
-    
-
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
@@ -23,29 +24,30 @@ library(spotifyr)
 library(compmus)
 library(plotly)
 library(ggplot2)
+library(dplyr)
 
 ```
 
+### Introduction
 
-### Introduction 
+The Evolution of Music
 
- In this project, I'm going to look at how music has changed over the years by comparing the top 100 songs  for the years 2000, 2005, 2010, 2015, and 2020.I am using playlists from Spotify that are based on the Billboard "Year End Hot 100" (Maybe i will delete year 2000 if the corpus ends up too big when analyzing). 
-This will explore how music evolves alongside societal trends and what remains constant across time.
-I'll be using data from Spotify to analyze trends and patterns in these songs across different years.
+When beginning this project i wondered, how has music changed over the last years?
+What kind of music is popular today compared to 20 years ago?
+If there are any big changes how do they relate to societal trends?
+This project aims to answer these questions.
+I'm going to look at how music has changed by comparing the top 100 songs for the years 2000, 2005, 2010, 2015, and 2020.
+I am using playlists from Spotify that are based on the Billboard "Year End Hot 100".
+I'll be using data collected from Spotify to analyze trends and patterns across different years.
 
 For now i will focus on: 
-How has the tempo (BPM) of popular songs changed?
-What musical keys are most prevalent, and does this change over time?
-How has the duration of songs evolved?
-What genres have become more or less popular?
-Did the number of explicit songs change over time? 
+-How has the energy, valence, danceability and tempo (BPM) of popular songs changed?
+- What musical keys are most prevalent, and does this change over time?
+- How has the duration of songs evolved?
+- What genres have become more or less popular?
+- Did the number of explicit songs change over time?
 
-
-
-### Plots
-
-This table shows the average total_Energy,total_Danceability and total_Valence
-for every year. Then i plotted this in a nice visual way (using a bit of help from the internet). I am not done decoding these results but it looks ..interesting..? 
+### Energy, Valence and Danceability
 
 ```{r, echo=FALSE}
 
@@ -80,8 +82,11 @@ comparison_df <- data.frame(
   Average_Valence = c(average_2000[3], average_2005[3], average_2010[3], average_2015[3], average_2020[3])
 )
 
+```
+
+```{r, echo=FALSE}
 # Print comparison yes
-print(comparison_df)
+
 
 # Plotting the comparison using Plotly
 plot_ly(data = comparison_df, x = ~Year, y = ~Average_Energy, type = 'bar', name = 'Average Energy', marker = list(color = 'rgba(255, 153, 51, 0.7)')) %>%
@@ -91,7 +96,217 @@ plot_ly(data = comparison_df, x = ~Year, y = ~Average_Energy, type = 'bar', name
          xaxis = list(title = 'Year'),
          yaxis = list(title = 'Average Value'),
          barmode = 'group',
-         width = 800, # Adjust the width
-         height = 300) # Adjust the height
+         margin = list(l = 50, r = 50, b = 100, t = 100, pad = 4))
+
+
+```
+*** 
+Looking at the plot we can see some changes: 
+
+Energy: The decline in average energy points towards a growing preference for more relaxed and softer music, moving away from high-energy tracks prevalent in the early 2000s.
+
+Danceability: An upward trend in danceability suggests that, despite a move towards lower energy levels, popular music has become increasingly suited for dancing, reflecting an interesting dynamic in music consumption.
+
+Valence: The decreasing trend in valence highlights a shift towards more melancholic tones, indicating that listeners may be gravitating towards music that conveys a broader range of emotional depth.
+
+
+
+
+
+
+
+
+
+
+### Keys 
+
+```{r, echo = FALSE}
+library(ggplot2)
+
+# Assuming 'playlist_attributes' data frames contain a 'key' column
+all_attributes <- bind_rows(
+  playlist_attributes_2000 %>% mutate(Year = "2000"),
+  playlist_attributes_2005 %>% mutate(Year = "2005"),
+  playlist_attributes_2010 %>% mutate(Year = "2010"),
+  playlist_attributes_2015 %>% mutate(Year = "2015"),
+  playlist_attributes_2020 %>% mutate(Year = "2020")
+)
+
+# Plot histogram of keys for each year
+ggplot(all_attributes, aes(x = as.factor(key), fill = Year)) +
+  geom_histogram(stat = "count", position = "dodge") +
+  scale_fill_viridis_d() +
+  labs(x = "Musical Key", y = "Count", title = "Distribution of Musical Keys Over Years") +
+  theme_minimal()
 ```
 
+***
+This plot shows the different distribution of keys for every year. I am quite unsure of what to make from this, so if there are suggestions, feel free to make a comment.
+
+
+### Chordogram 
+
+```{r, echo=FALSE}
+circshift <- function(v, n) {
+  if (n == 0) v else c(tail(v, n), head(v, -n))
+}
+
+#      C     C#    D     Eb    E     F     F#    G     Ab    A     Bb    B
+major_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    0,    0)
+minor_chord <-
+  c(   1,    0,    0,    1,    0,    0,    0,    1,    0,    0,    0,    0)
+seventh_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    1,    0)
+
+major_key <-
+  c(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
+minor_key <-
+  c(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+
+chord_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:7", circshift(seventh_chord, 6),
+    "Gb:maj", circshift(major_chord, 6),
+    "Bb:min", circshift(minor_chord, 10),
+    "Db:maj", circshift(major_chord, 1),
+    "F:min", circshift(minor_chord, 5),
+    "Ab:7", circshift(seventh_chord, 8),
+    "Ab:maj", circshift(major_chord, 8),
+    "C:min", circshift(minor_chord, 0),
+    "Eb:7", circshift(seventh_chord, 3),
+    "Eb:maj", circshift(major_chord, 3),
+    "G:min", circshift(minor_chord, 7),
+    "Bb:7", circshift(seventh_chord, 10),
+    "Bb:maj", circshift(major_chord, 10),
+    "D:min", circshift(minor_chord, 2),
+    "F:7", circshift(seventh_chord, 5),
+    "F:maj", circshift(major_chord, 5),
+    "A:min", circshift(minor_chord, 9),
+    "C:7", circshift(seventh_chord, 0),
+    "C:maj", circshift(major_chord, 0),
+    "E:min", circshift(minor_chord, 4),
+    "G:7", circshift(seventh_chord, 7),
+    "G:maj", circshift(major_chord, 7),
+    "B:min", circshift(minor_chord, 11),
+    "D:7", circshift(seventh_chord, 2),
+    "D:maj", circshift(major_chord, 2),
+    "F#:min", circshift(minor_chord, 6),
+    "A:7", circshift(seventh_chord, 9),
+    "A:maj", circshift(major_chord, 9),
+    "C#:min", circshift(minor_chord, 1),
+    "E:7", circshift(seventh_chord, 4),
+    "E:maj", circshift(major_chord, 4),
+    "G#:min", circshift(minor_chord, 8),
+    "B:7", circshift(seventh_chord, 11),
+    "B:maj", circshift(major_chord, 11),
+    "D#:min", circshift(minor_chord, 3)
+  )
+
+key_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:maj", circshift(major_key, 6),
+    "Bb:min", circshift(minor_key, 10),
+    "Db:maj", circshift(major_key, 1),
+    "F:min", circshift(minor_key, 5),
+    "Ab:maj", circshift(major_key, 8),
+    "C:min", circshift(minor_key, 0),
+    "Eb:maj", circshift(major_key, 3),
+    "G:min", circshift(minor_key, 7),
+    "Bb:maj", circshift(major_key, 10),
+    "D:min", circshift(minor_key, 2),
+    "F:maj", circshift(major_key, 5),
+    "A:min", circshift(minor_key, 9),
+    "C:maj", circshift(major_key, 0),
+    "E:min", circshift(minor_key, 4),
+    "G:maj", circshift(major_key, 7),
+    "B:min", circshift(minor_key, 11),
+    "D:maj", circshift(major_key, 2),
+    "F#:min", circshift(minor_key, 6),
+    "A:maj", circshift(major_key, 9),
+    "C#:min", circshift(minor_key, 1),
+    "E:maj", circshift(major_key, 4),
+    "G#:min", circshift(minor_key, 8),
+    "B:maj", circshift(major_key, 11),
+    "D#:min", circshift(minor_key, 3)
+  )
+```
+```{r, echo=FALSE}
+
+top1_2000 <-
+  get_tidy_audio_analysis("3y4LxiYMgDl4RethdzpmNe") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      )
+  )
+```
+
+
+```{r, echo=FALSE}
+top1_2000 |> 
+  compmus_match_pitch_template(
+    key_templates,         # Change to chord_templates if descired
+    method = "euclidean",  # Try different distance metrics
+    norm = "chebyshev"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "")
+```
+
+***
+This chordogram displays the progression of chords used throughout the song  "Breath" by Faith Hill. This was the top song in 2000. The chordogram would indicate that the song is primarily in the key of G major, which is true in this case. 
+Around the 200-second mark, there is a noticeable patch that is in G major. When istening to the song, you hear the music get more harmonic/intense? The chordograms reveals that the outro of the song is relatively long. 
+
+
+
+
+
+### Standard Deviation of Tempo (BPM)
+
+```{r, echo = FALSE}
+
+```
+
+```{r, echo=FALSE}
+all_playlists <- bind_rows(
+  playlist_attributes_2000 %>% mutate(year = 2000),
+  playlist_attributes_2005 %>% mutate(year = 2005),
+  playlist_attributes_2010 %>% mutate(year = 2010),
+  playlist_attributes_2015 %>% mutate(year = 2015),
+  playlist_attributes_2020 %>% mutate(year = 2020)
+)
+
+# Calculate summary statistics for tempo at the playlist level
+playlist_summary <- all_playlists %>%
+  group_by(year) %>%
+  summarise(
+    mean_tempo = mean(tempo),
+    sd_tempo = sd(tempo)
+  )
+
+# Create an interactive scatter plot with plotly
+plot_ly(playlist_summary, x = ~year, y = ~mean_tempo, color = ~factor(year), size = ~sd_tempo,
+        type = "scatter", mode = "markers", text = ~paste("Year: ", year, "<br>Mean Tempo: ", mean_tempo, " bpm<br>SD Tempo: ", sd_tempo)) %>%
+  layout(
+    title = "Mean Tempo Variation Across Playlists by Year",
+    xaxis = list(title = "Year"),
+    yaxis = list(title = "Mean Tempo (bpm)"),
+    showlegend = FALSE
+  )
+```
+*** 
+
+This shows the mean tempo per year and the standard deviations per year.  The greater the point the greater the standard deviation. You can hover on the points to get the exact values for each year. 
