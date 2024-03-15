@@ -310,3 +310,53 @@ plot_ly(playlist_summary, x = ~year, y = ~mean_tempo, color = ~factor(year), siz
 *** 
 
 This shows the mean tempo per year and the standard deviations per year.  The greater the point the greater the standard deviation. You can hover on the points to get the exact values for each year. 
+
+### Difference in tempo NEW
+```{r, echo=FALSE}
+# Assuming you have grouped your data by year or genre and calculated tempo statistics
+# Plotting histograms of tempi for different groups using Plotly
+
+# Calculate tempo statistics for each group
+tempo_stats <- all_playlists %>%
+  group_by(year) %>%
+  summarise(
+    mean_tempo = mean(tempo),
+    median_tempo = median(tempo),
+    sd_tempo = sd(tempo)
+  )
+
+# Plotting the difference in tempo for each year using Plotly
+plot_ly(tempo_stats, x = ~year, y = ~mean_tempo, type = "scatter", mode = "lines+markers") %>%
+  layout(title = "Mean Tempo Variation Across Years",
+         xaxis = list(title = "Year"),
+         yaxis = list(title = "Mean Tempo (BPM)"),
+         hoverinfo = "text",
+         text = ~paste("Year: ", year, "<br>Mean Tempo: ", mean_tempo, " BPM"),
+         showlegend = FALSE)
+
+
+```
+*** 
+I did not have time for an extensive analysis but it is clear that there is no direct relationship between the years and the mean tempo. That's probably because each year's top 100 songs cover a wide range of styles. So, the averages we see don't really tell us much about any particular genre, just the overall vibe of the biggest hits each year. 
+
+### Tempogram NEW
+```{r, echo=FALSE}
+
+# Get audio analysis for the top song of 2000
+top1_2000 <- get_tidy_audio_analysis("3y4LxiYMgDl4RethdzpmNe")
+
+# Generate tempogram for the top song of 2000
+tempogram_top1_2000 <- top1_2000 |>
+  tempogram(window_size = 4, hop_size = 0.5, cyclic = TRUE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+
+# Display tempogram for the top song of 2000
+tempogram_top1_2000
+```
+*** 
+Analysis will be done later
+
