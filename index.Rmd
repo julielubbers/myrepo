@@ -1,53 +1,127 @@
 ---
 title: "Computational Musicology"
 author: "Julie Lubbers"
-date: ""
-output:
+date: ''
+output: 
   flexdashboard::flex_dashboard:
-    storyboard: true
     orientation: columns
-editor_options: 
-  markdown: 
-    wrap: sentence
+    vertical_layout: fill
+    theme: journal
+    self_contained: false
+  html_document:
+    keep_md: true
 ---
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r , include=FALSE}
-library(tidyverse)
-```
 
 ```{r , include=FALSE}
+
+
+library(flexdashboard)
 library(spotifyr)
-library(compmus)
-library(plotly)
+library(tidyverse)
 library(ggplot2)
-library(dplyr)
+library(plotly)
+library(tidyr)
+library(compmus)
+library(tidymodels)
+library(ggdendro)
+library(heatmaply)
+
+
+
+
+
+ 
+
+# Data retrieval for each playlist
+playlist_attributes_2000 <- get_playlist_audio_features("", "4sgfHKNUvjabf82DgycNld")
+playlist_attributes_2005 <- get_playlist_audio_features("", "4olzlochc7bKxI9meYVBQ5")
+playlist_attributes_2010 <- get_playlist_audio_features("", "0BopsKdMocIBPOUYNrYod0")
+playlist_attributes_2015 <- get_playlist_audio_features("", "7fW8dnRbe3Gn7zCa4Tpe1D")
+playlist_attributes_2020 <- get_playlist_audio_features("", "2jDNKyd7Fs8Zf3pLVkCasY")
+
 
 ```
 
-### Introduction
 
-The Evolution of Music
+
+Introduction {data-icon="ion-ios-home-outline"}
+=======================================================
+
+Column {data-width=250}
+-------------------------
+
+### The Evolution of Music 
+
+TODO
+
+**My Corpus** 
 
 When beginning this project i wondered, how has music changed over the last years?
 What kind of music is popular today compared to 20 years ago?
 If there are any big changes how do they relate to societal trends?
 This project aims to answer these questions.
-I'm going to look at how music has changed by comparing the top 100 songs for the years 2000, 2005, 2010, 2015, and 2020.
-I am using playlists from Spotify that are based on the Billboard "Year End Hot 100".
+
+I'm going to look at how music has changed by comparing the top 100 songs for the years 2000, 2005, 2010, 2015, and 2020. Have a scroll around the hits, do you see the songs you would have expected? 
+
+I am using playlists from Spotify that are based on the Billboard "Year End Hot 100". 
 I'll be using data collected from Spotify to analyze trends and patterns across different years.
 
-For now i will focus on: 
--How has the energy, valence, danceability and tempo (BPM) of popular songs changed?
-- What musical keys are most prevalent, and does this change over time?
-- How has the duration of songs evolved?
-- What genres have become more or less popular?
-- Did the number of explicit songs change over time?
+**Visualizations** 
 
+Visualizations made with the spotify API will help to get a better understanding of the changes in musical content between the different years by providing insights into their underlying musical features. Features such as chromagrams(need to add), self-similarity matrices( need to add), and chordograms can help to identify patterns and structures. Tempograms can reveal the tempo fluctuations and rhythmic patterns that can influence emotional responses in listeners. Clustering methods like dendrograms can help to identify similarities and differences between the years based on various features. By analyzing these visualizations, we can gain a more nuanced understanding of how music has evolved in the past two decades
+
+**What to expect**
+
+This portfolio will try to investigate energy, valence, danceability, and tempo (BPM) changes over the years.  An analysis of prevalent musical keys over time. Investigation into the duration and genres of popular songs and determine if the number of explicit songs has changed over time
+
+
+Column {data-width=150}
+-------------------------
+
+### Top 100 of 2000
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/4sgfHKNUvjabf82DgycNld?utm_source=generator" width="100%" height="700" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+Column {data-width=150}
+-------------------------
+
+### Top 100 of 2005
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/4olzlochc7bKxI9meYVBQ5?utm_source=generator" width="100%" height="700" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+Column {data-width=150}
+-------------------------
+
+### Top 100 of 2010
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/0BopsKdMocIBPOUYNrYod0?utm_source=generator" width="100%" height="700" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+Column {data-width=150}
+-------------------------
+
+### Top 100 of 2015
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/7fW8dnRbe3Gn7zCa4Tpe1D?utm_source=generator" width="100%" height="700" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+Column {data-width=150}
+-------------------------
+
+### Top 100 of 2020
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/2jDNKyd7Fs8Zf3pLVkCasY?utm_source=generator" width="100%" height="700" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+
+
+Track features {.storyboard data-icon="fa-signal"}
+======================================================
 ### Energy, Valence and Danceability
+
 
 ```{r, echo=FALSE}
 
@@ -60,12 +134,6 @@ calculate_average <- function(df) {
   return(c(avg_energy, avg_danceability, avg_valence))
 }
 
-# Data retrieval for each playlist
-playlist_attributes_2000 <- get_playlist_audio_features("", "4sgfHKNUvjabf82DgycNld")
-playlist_attributes_2005 <- get_playlist_audio_features("", "4olzlochc7bKxI9meYVBQ5")
-playlist_attributes_2010 <- get_playlist_audio_features("", "0BopsKdMocIBPOUYNrYod0")
-playlist_attributes_2015 <- get_playlist_audio_features("", "7fW8dnRbe3Gn7zCa4Tpe1D")
-playlist_attributes_2020 <- get_playlist_audio_features("", "2jDNKyd7Fs8Zf3pLVkCasY")
 
 # Calculate average energy, danceability, and valence per year
 average_2000 <- calculate_average(playlist_attributes_2000)
@@ -100,7 +168,8 @@ plot_ly(data = comparison_df, x = ~Year, y = ~Average_Energy, type = 'bar', name
 
 
 ```
-*** 
+
+***
 Looking at the plot we can see some changes: 
 
 Energy: The decline in average energy points towards a growing preference for more relaxed and softer music, moving away from high-energy tracks prevalent in the early 2000s.
@@ -116,7 +185,8 @@ Valence: The decreasing trend in valence highlights a shift towards more melanch
 
 
 
-
+Key features {.storyboard data-icon="fa-signal"}
+======================================================
 
 ### Keys 
 
@@ -143,7 +213,8 @@ ggplot(all_attributes, aes(x = as.factor(key), fill = Year)) +
 ***
 This plot shows the different distribution of keys for every year. I am quite unsure of what to make from this, so if there are suggestions, feel free to make a comment.
 
-
+Chord features {.storyboard data-icon="fa-signal"}
+======================================================
 ### Chordogram 
 
 ```{r, echo=FALSE}
@@ -272,7 +343,8 @@ Around the 200-second mark, there is a noticeable patch that is in G major. When
 
 
 
-
+SD {.storyboard data-icon="fa-signal"}
+======================================================
 
 ### Standard Deviation of Tempo (BPM)
 
@@ -311,7 +383,10 @@ plot_ly(playlist_summary, x = ~year, y = ~mean_tempo, color = ~factor(year), siz
 
 This shows the mean tempo per year and the standard deviations per year.  The greater the point the greater the standard deviation. You can hover on the points to get the exact values for each year. 
 
-### Difference in tempo NEW
+Tempo features {.storyboard data-icon="fa-signal"}
+======================================================
+
+### Difference in tempo 
 ```{r, echo=FALSE}
 # Assuming you have grouped your data by year or genre and calculated tempo statistics
 # Plotting histograms of tempi for different groups using Plotly
@@ -336,11 +411,15 @@ plot_ly(tempo_stats, x = ~year, y = ~mean_tempo, type = "scatter", mode = "lines
 
 
 ```
-*** 
+
+***
+
 I did not have time for an extensive analysis but it is clear that there is no direct relationship between the years and the mean tempo. That's probably because each year's top 100 songs cover a wide range of styles. So, the averages we see don't really tell us much about any particular genre, just the overall vibe of the biggest hits each year. 
 
-### Tempogram NEW
-```{r, echo=FALSE}
+Tempo gram features {.storyboard data-icon="fa-signal"}
+======================================================
+### Tempogram 
+<!--```{r, echo=FALSE}
 
 # Get audio analysis for the top song of 2000
 top1_2000 <- get_tidy_audio_analysis("3y4LxiYMgDl4RethdzpmNe")
@@ -356,7 +435,175 @@ tempogram_top1_2000 <- top1_2000 |>
 
 # Display tempogram for the top song of 2000
 tempogram_top1_2000
+```-->
+
+***
+Analysis will be done later--> plot was commented out for now due to its very high loading  time that my laptop does not like
+
+Chord features NEW {.storyboard data-icon="fa-signal"}
+======================================================
+### Top 5 Songs by Year  NEW 
+
+```{r, echo=FALSE}
+# Manually creating a dataframe with the information from the screenshot
+
+songs2000_df <- data.frame(
+  Title = c("Breathe", "Smooth (feat. Rob Thomas)", "Maria Maria (feat. The Product G&B)", 
+            "I Wanna Know", "Everything You Want"),
+  Artist = c("Faith Hill", "Santana, Rob Thomas", "Santana, The Product G&B",
+             "Joe", "Vertical Horizon"))
+  
+
+ songs2005_df <- data.frame(
+  Title = c("We Belong Together", "Hollaback Girl", "Let Me Love You", 
+            "Since U Been Gone", "1, 2 Step (feat. Missy Elliott) - Main"),
+  Artist = c("Mariah Carey", "Gwen Stefani", "Mario", 
+             "Kelly Clarkson", "Ciara, Missy Elliott")
+)
+
+ songs2010_df <- data.frame(
+  Title = c("TiK ToK", "Need You Now", "Hey, Soul Sister", 
+            "California Gurls", "OMG (feat. will.i.am)"),
+  Artist = c("Kesha", "Lady A", "Train", 
+             "Katy Perry, Snoop Dogg", "USHER, will.i.am")
+ 
+)
+  songs2015_df <- data.frame(
+  Title = c("Uptown Funk (feat. Bruno Mars)", "Thinking out Loud", 
+            "See You Again (feat. Charlie Puth)", "Trap Queen", "Sugar"),
+  Artist = c("Mark Ronson, Bruno Mars", "Ed Sheeran", 
+             "Wiz Khalifa, Charlie Puth", "Fetty Wap", "Maroon 5")
+ 
+)
+   songs2020_df <- data.frame(
+  Title = c("Blinding Lights", "Circles", "The Box", "Don't Start Now", "ROCKSTAR (feat. Roddy Ricch)"),
+  Artist = c( "The Weeknd", "Post Malone", "Roddy Ricch", "Dua Lipa", "DaBaby, Roddy Ricch")
+ 
+)
+
+library(knitr)
+library(kableExtra)
+# Assuming you have the following data frames: songs2000_df, songs2005_df, etc.
+# Add a 'Year' column to each data frame
+songs2000_df$Year <- "2000"
+songs2005_df$Year <- "2005"
+songs2010_df$Year <- "2010"
+songs2015_df$Year <- "2015"
+songs2020_df$Year <- "2020"
+
+# Combine all data frames into one
+all_songs_df <- rbind(songs2000_df, songs2005_df, songs2010_df, songs2015_df, songs2020_df)
+
+# Use kable to print the table
+kable(all_songs_df, format = "html", table.attr = "style='width:100%;'")
 ```
-*** 
-Analysis will be done later
+
+
+```{r, echo=FALSE}
+get_conf_mat <- function(fit) {
+  outcome <- .get_tune_outcome_names(fit)
+  fit |> 
+    collect_predictions() |> 
+    conf_mat(truth = outcome, estimate = .pred_class)
+}  
+
+get_pr <- function(fit) {
+  fit |> 
+    conf_mat_resampled() |> 
+    group_by(Prediction) |> mutate(precision = Freq / sum(Freq)) |> 
+    group_by(Truth) |> mutate(recall = Freq / sum(Freq)) |> 
+    ungroup() |> filter(Prediction == Truth) |> 
+    select(class = Prediction, precision, recall)
+}  
+```
+
+
+
+
+### Clustering: various features  NEW 
+
+```{r, echo=FALSE}
+halloween <-
+  get_playlist_audio_features("", "3DfPX92CMjBDv3Xn6ihDja") |>
+  add_audio_analysis() |>
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+
+```
+
+```{r, echo=FALSE}
+halloween_juice <-
+  recipe(
+    track.name ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration ,
+    data = halloween
+  ) |>
+  step_center(all_predictors()) |>
+  step_scale(all_predictors()) |> 
+  # step_range(all_predictors()) |> 
+  prep(halloween |> mutate(track.name = str_trunc(track.name, 20))) |>
+  juice() |>
+  column_to_rownames("track.name")
+```
+
+```{r, echo=FALSE}
+halloween_dist <- dist(halloween_juice, method = "euclidean")
+```
+```{r, echo=FALSE}
+halloween_dist |> 
+  hclust(method = "complete") |> # Try single, average, and complete.
+  dendro_data() |>
+  ggdendrogram()
+```
+
+***
+ 
+**Clustering Analysis of Top Songs from 2000 to 2020**
+
+This section explores the clustering of the top 5 songs from each year, from 2000 to 2020, based on a variety of musical features as listed below. The goals of this  analysis was to see patterns or similarities among these hits and see if every year had distinct features that defined the top songs
+
+
+**Features Considered:** 
+
+- Danceability
+- Energy
+- Loudness
+- Speechiness
+- Acousticness
+- Instrumentalness
+- Liveness
+- Valence
+- Tempo
+- Duration
+
+**Chosen Method:**
+
+The complete clustering method gave the most descriptive clusters but the clusters are not defined per year.  In the track-level audio analysis we say that Valence had a negative trend over the years. The results of clustering based on valence are shown in the next tab. 
+
+
+### Clustering: Valence NEW
 
